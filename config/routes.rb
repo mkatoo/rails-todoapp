@@ -9,4 +9,5 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   resources :users, only: %i[ index show create ]
+  resource :auth, controller: :auth, only: %i[ create ]
 end

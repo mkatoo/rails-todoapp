@@ -6,4 +6,12 @@ class User < ApplicationRecord
     format: { with: URI::MailTo::EMAIL_REGEXP },
     presence: true,
     uniqueness: { case_sensitive: false }
+
+  after_initialize :set_token, if: :new_record?
+
+  private
+
+  def set_token
+    self.token = SecureRandom.uuid
+  end
 end
