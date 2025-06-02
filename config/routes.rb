@@ -10,4 +10,5 @@ Rails.application.routes.draw do
 
   resources :users, only: %i[ index show create ]
   resource :auth, controller: :auth, only: %i[ create ]
+  resources :tasks, only: %i[ index create update destroy ]
 end

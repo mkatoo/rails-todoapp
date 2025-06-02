@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   has_secure_password
 
+  has_many :tasks, dependent: :destroy
+
   validates :name, length: { in: 3..10 }
   validates :email,
     format: { with: URI::MailTo::EMAIL_REGEXP },
