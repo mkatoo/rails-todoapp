@@ -6,7 +6,7 @@ RSpec.describe "Tasks", type: :request do
   let(:token) { "TOKEN" }
   let!(:user) { create(:user, email:, password:, token:) }
 
-  describe "GET /index" do
+  describe "GET /tasks" do
     context "ユーザが認証されていない場合" do
       it "401エラーを返す" do
         get tasks_path
@@ -31,6 +31,32 @@ RSpec.describe "Tasks", type: :request do
           expect(response).to have_http_status(:ok)
           expect(JSON.parse(response.body)).to eq(tasks.as_json)
         end
+      end
+    end
+  end
+
+  describe "POST /tasks" do
+    context "ユーザが認証されていない場合" do
+      it "401エラーを返す" do
+        post tasks_path, params: { content: "New Task" }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "ユーザが認証されている場合" do
+      let(:content) { "New Task" }
+
+      it "新しいタスクを作成する" do
+        post tasks_path, params: { content: }, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:created)
+        json = JSON.parse(response.body)
+        expect(json["content"]).to eq(content)
+        expect(json["user_id"]).to eq(user.id)
+      end
+
+      it "無効なパラメータでタスクを作成しようとすると422エラーを返す" do
+        post tasks_path, params: { content: "" }, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:unprocessable_entity)
       end
     end
   end

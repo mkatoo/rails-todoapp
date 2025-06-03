@@ -9,6 +9,12 @@ class TasksController < ApplicationController
   end
 
   def create
+    task = @user.tasks.new(content: params[:content])
+    if task.save
+      render json: task, status: :created
+    else
+      render json: task.errors, status: :unprocessable_entity
+    end
   end
 
   def update
