@@ -12,7 +12,11 @@ class UsersController < ApplicationController
   end
 
   def create
-    @user = User.new(user_params)
+    @user = User.new(
+      name: params[:name],
+      email: params[:email],
+      password: params[:password]
+    )
     if @user.save
       render json: user_hash(@user), status: :created
     else
@@ -24,10 +28,6 @@ class UsersController < ApplicationController
 
   def set_user
     @user = User.find(params[:id])
-  end
-
-  def user_params
-    params.permit!.slice(:name, :email, :password)
   end
 
   def user_hash(user)
