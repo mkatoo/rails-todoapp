@@ -60,4 +60,52 @@ RSpec.describe "Tasks", type: :request do
       end
     end
   end
+
+  describe "PATCH /tasks/:id" do
+    context "ユーザが認証されていない場合" do
+      let!(:task) { create(:task, user:) }
+
+      it "401エラーを返す" do
+        patch task_path(task), params: { content: "Updated Task" }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "ユーザが認証されている場合" do
+      let!(:task) { create(:task, user:) }
+
+      it "タスクを更新する" do
+        patch task_path(task), params: { content: "Updated Task" }, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json["content"]).to eq("Updated Task")
+      end
+
+      it "無効なパラメータでタスクを更新しようとすると422エラーを返す" do
+        patch task_path(task), params: { content: "" }, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+  end
+
+  describe "DELETE /tasks/:id" do
+    context "ユーザが認証されていない場合" do
+      let!(:task) { create(:task, user:) }
+
+      it "401エラーを返す" do
+        delete task_path(task)
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "ユーザが認証されている場合" do
+      let!(:task) { create(:task, user:) }
+
+      it "タスクを削除する" do
+        delete task_path(task), headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:no_content)
+        expect(Task.count).to eq 0
+      end
+    end
+  end
 end
