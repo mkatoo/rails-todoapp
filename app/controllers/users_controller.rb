@@ -3,12 +3,25 @@ class UsersController < ApplicationController
 
   def index
     @users = User.all
-    users = @users.map { |user| user_hash(user) }
+    users = @users.map do |user|
+      {
+        name: user.name,
+        email: user.email,
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      }
+    end
     render json: users, status: :ok
   end
 
   def show
-    render json: user_hash(@user), status: :ok
+    response = {
+      name: @user.name,
+      email: @user.email,
+      created_at: @user.created_at,
+      updated_at: @user.updated_at
+    }
+    render json: response, status: :ok
   end
 
   def create
@@ -18,7 +31,14 @@ class UsersController < ApplicationController
       password: params[:password]
     )
     if @user.save
-      render json: user_hash(@user), status: :created
+      response = {
+        name: @user.name,
+        email: @user.email,
+        token: @user.token,
+        created_at: @user.created_at,
+        updated_at: @user.updated_at
+      }
+      render json: response, status: :created
     else
       render json: @user.errors, status: :unprocessable_entity
     end
@@ -28,14 +48,5 @@ class UsersController < ApplicationController
 
   def set_user
     @user = User.find(params[:id])
-  end
-
-  def user_hash(user)
-    {
-      name: user.name,
-      email: user.email,
-      created_at: user.created_at,
-      updated_at: user.updated_at
-    }
   end
 end

@@ -71,6 +71,7 @@ RSpec.describe "User API", type: :request do
         json = JSON.parse(response.body)
         expect(json["name"]).to eq name
         expect(json["email"]).to eq email
+        expect(json["token"]).to eq User.find_by(email:).token
         expect(Time.parse(json["created_at"])).to eq time
       end
     end
