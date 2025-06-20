@@ -87,4 +87,28 @@ RSpec.describe "User API", type: :request do
       end
     end
   end
+
+  describe "PATCH /users/:id" do
+    let!(:user) { create(:user, name: "Old Name", email: "update@example.com") }
+    let(:new_name) { "New Name" }
+
+    context "有効なnameを送信した場合" do
+      it "ユーザー名が更新される" do
+        patch user_path(user), params: { name: new_name }
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json["name"]).to eq new_name
+        expect(user.reload.name).to eq new_name
+      end
+    end
+
+    context "無効なnameを送信した場合" do
+      it "エラーが返る" do
+        patch user_path(user), params: { name: "" }
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body)
+        expect(json["name"]).to include("is too short (minimum is 3 characters)")
+      end
+    end
+  end
 end

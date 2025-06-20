@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: %i[ show ]
+  before_action :set_user, only: %i[ show update ]
 
   def index
     @users = User.all
@@ -39,6 +39,20 @@ class UsersController < ApplicationController
         updated_at: @user.updated_at
       }
       render json: response, status: :created
+    else
+      render json: @user.errors, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    if @user.update(name: params[:name])
+      response = {
+        name: @user.name,
+        email: @user.email,
+        created_at: @user.created_at,
+        updated_at: @user.updated_at
+      }
+      render json: response, status: :ok
     else
       render json: @user.errors, status: :unprocessable_entity
     end
