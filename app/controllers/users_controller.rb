@@ -1,5 +1,8 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: %i[ show update ]
+  include ActionController::HttpAuthentication::Token::ControllerMethods
+
+  before_action :set_user, only: %i[ show ]
+  before_action :authenticate, only: %i[ update ]
 
   def index
     @users = User.all
@@ -62,5 +65,11 @@ class UsersController < ApplicationController
 
   def set_user
     @user = User.find(params[:id])
+  end
+
+  def authenticate
+    authenticate_or_request_with_http_token do |token, _|
+      @user = User.find_by(token:)
+    end
   end
 end

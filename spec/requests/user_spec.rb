@@ -89,12 +89,20 @@ RSpec.describe "User API", type: :request do
   end
 
   describe "PATCH /users/:id" do
-    let!(:user) { create(:user, name: "Old Name", email: "update@example.com") }
+    let(:token) { "TOKEN" }
+    let!(:user) { create(:user, name: "Old Name", email: "update@example.com", token:) }
     let(:new_name) { "New Name" }
+
+    context "ユーザが認証されていない場合" do
+      it "401エラーを返す" do
+        patch user_path(user), params: { name: new_name }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
 
     context "有効なnameを送信した場合" do
       it "ユーザー名が更新される" do
-        patch user_path(user), params: { name: new_name }
+        patch user_path(user), params: { name: new_name }, headers: { 'Authorization' => "Bearer #{token}" }
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json["name"]).to eq new_name
@@ -104,7 +112,7 @@ RSpec.describe "User API", type: :request do
 
     context "無効なnameを送信した場合" do
       it "エラーが返る" do
-        patch user_path(user), params: { name: "" }
+        patch user_path(user), params: { name: "" }, headers: { 'Authorization' => "Bearer #{token}" }
         expect(response).to have_http_status(:unprocessable_entity)
         json = JSON.parse(response.body)
         expect(json["name"]).to include("is too short (minimum is 3 characters)")
