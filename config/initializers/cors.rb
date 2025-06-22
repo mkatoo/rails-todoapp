@@ -7,9 +7,11 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins "*"
+    # 本番環境では具体的なドメインを指定することを推奨
+    origins Rails.env.development? ? [ "http://localhost:3000", "http://localhost:5173", "http://localhost:8080" ] : []
     resource "*",
       headers: :any,
-      methods: [ :get, :post, :put, :patch, :delete, :options, :head ]
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
+      credentials: true # Cookieをサポートするために必要
   end
 end

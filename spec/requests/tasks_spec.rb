@@ -14,7 +14,7 @@ RSpec.describe "Tasks", type: :request do
       end
     end
 
-    context "ユーザが認証されている場合" do
+    context "ユーザがBearerトークンで認証されている場合" do
       context "タスクが存在しない場合" do
         it "空のリストを返す" do
           get tasks_path, headers: { 'Authorization' => "Bearer #{token}" }
@@ -33,6 +33,31 @@ RSpec.describe "Tasks", type: :request do
         end
       end
     end
+
+    context "ユーザがCookieで認証されている場合" do
+      before do
+        # Cookieを設定するためにログインエンドポイントを利用
+        post auth_path, params: { email: user.email, password: user.password }
+      end
+
+      context "タスクが存在しない場合" do
+        it "空のリストを返す" do
+          get tasks_path
+          expect(response).to have_http_status(:ok)
+          expect(JSON.parse(response.body)).to eq([])
+        end
+      end
+
+      context "タスクが存在する場合" do
+        let!(:tasks) { create_list(:task, 3, user:) }
+
+        it "タスクのリストを返す" do
+          get tasks_path
+          expect(response).to have_http_status(:ok)
+          expect(JSON.parse(response.body)).to eq(tasks.as_json)
+        end
+      end
+    end
   end
 
   describe "POST /tasks" do
@@ -43,7 +68,7 @@ RSpec.describe "Tasks", type: :request do
       end
     end
 
-    context "ユーザが認証されている場合" do
+    context "ユーザがBearerトークンで認証されている場合" do
       let(:content) { "New Task" }
 
       it "新しいタスクを作成する" do
@@ -57,6 +82,23 @@ RSpec.describe "Tasks", type: :request do
       it "無効なパラメータでタスクを作成しようとすると422エラーを返す" do
         post tasks_path, params: { content: "" }, headers: { 'Authorization' => "Bearer #{token}" }
         expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context "ユーザがCookieで認証されている場合" do
+      let(:content) { "New Task" }
+
+      before do
+        # Cookieを設定するためにログインエンドポイントを利用
+        post auth_path, params: { email: user.email, password: user.password }
+      end
+
+      it "新しいタスクを作成する" do
+        post tasks_path, params: { content: }
+        expect(response).to have_http_status(:created)
+        json = JSON.parse(response.body)
+        expect(json["content"]).to eq(content)
+        expect(json["user_id"]).to eq(user.id)
       end
     end
   end

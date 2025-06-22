@@ -1,8 +1,6 @@
 class UsersController < ApplicationController
-  include ActionController::HttpAuthentication::Token::ControllerMethods
-
   before_action :set_user, only: %i[ show ]
-  before_action :authenticate, only: %i[ update me ]
+  before_action :authenticate_user!, only: %i[ update me ]
 
   def index
     @users = User.all
@@ -34,6 +32,7 @@ class UsersController < ApplicationController
       password: params[:password]
     )
     if @user.save
+      set_auth_cookie(@user)
       response = {
         name: @user.name,
         email: @user.email,
@@ -48,25 +47,25 @@ class UsersController < ApplicationController
   end
 
   def update
-    if @user.update(name: params[:name])
+    if current_user.update(name: params[:name])
       response = {
-        name: @user.name,
-        email: @user.email,
-        created_at: @user.created_at,
-        updated_at: @user.updated_at
+        name: current_user.name,
+        email: current_user.email,
+        created_at: current_user.created_at,
+        updated_at: current_user.updated_at
       }
       render json: response, status: :ok
     else
-      render json: @user.errors, status: :unprocessable_entity
+      render json: current_user.errors, status: :unprocessable_entity
     end
   end
 
   def me
     response = {
-      name: @user.name,
-      email: @user.email,
-      created_at: @user.created_at,
-      updated_at: @user.updated_at
+      name: current_user.name,
+      email: current_user.email,
+      created_at: current_user.created_at,
+      updated_at: current_user.updated_at
     }
     render json: response, status: :ok
   end
@@ -75,11 +74,5 @@ class UsersController < ApplicationController
 
   def set_user
     @user = User.find(params[:id])
-  end
-
-  def authenticate
-    authenticate_or_request_with_http_token do |token, _|
-      @user = User.find_by(token:)
-    end
   end
 end

@@ -13,6 +13,6 @@ Rails.application.routes.draw do
       get :me
     end
   end
-  resource :auth, controller: :auth, only: %i[ create ]
+  resource :auth, controller: :auth, only: %i[ create destroy ]
   resources :tasks, only: %i[ index create update destroy ]
 end

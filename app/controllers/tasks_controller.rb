@@ -1,16 +1,14 @@
 class TasksController < ApplicationController
-  include ActionController::HttpAuthentication::Token::ControllerMethods
-
-  before_action :authenticate
+  before_action :authenticate_user!
   before_action :set_task, only: %i[update destroy]
 
   def index
-    @tasks = @user.tasks
+    @tasks = current_user.tasks
     render json: @tasks, status: :ok
   end
 
   def create
-    task = @user.tasks.new(content: params[:content])
+    task = current_user.tasks.new(content: params[:content])
     if task.save
       render json: task, status: :created
     else
@@ -35,13 +33,7 @@ class TasksController < ApplicationController
 
   private
 
-  def authenticate
-    authenticate_or_request_with_http_token do |token, _|
-      @user = User.find_by(token:)
-    end
-  end
-
   def set_task
-    @task = @user.tasks.find(params[:id])
+    @task = current_user.tasks.find(params[:id])
   end
 end
