@@ -8,7 +8,11 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
-  resources :users, only: %i[ index show create update ]
+  resources :users, only: %i[ index show create update ] do
+    collection do
+      get :me
+    end
+  end
   resource :auth, controller: :auth, only: %i[ create ]
   resources :tasks, only: %i[ index create update destroy ]
 end

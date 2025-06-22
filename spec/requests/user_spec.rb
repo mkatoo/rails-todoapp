@@ -119,4 +119,35 @@ RSpec.describe "User API", type: :request do
       end
     end
   end
+
+  describe "GET /users/me" do
+    let(:token) { "TOKEN" }
+    let!(:user) { create(:user, name: "Test User", email: "me@example.com", token:) }
+
+    context "ユーザが認証されていない場合" do
+      it "401エラーを返す" do
+        get me_users_path
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "ユーザが認証されている場合" do
+      it "自分のユーザ情報を返す" do
+        get me_users_path, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:success)
+        json = JSON.parse(response.body)
+        expect(json["name"]).to eq user.name
+        expect(json["email"]).to eq user.email
+        expect(json["created_at"]).not_to be_nil
+        expect(json["updated_at"]).not_to be_nil
+      end
+    end
+
+    context "無効なトークンの場合" do
+      it "401エラーを返す" do
+        get me_users_path, headers: { 'Authorization' => "Bearer invalid_token" }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end

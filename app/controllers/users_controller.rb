@@ -2,7 +2,7 @@ class UsersController < ApplicationController
   include ActionController::HttpAuthentication::Token::ControllerMethods
 
   before_action :set_user, only: %i[ show ]
-  before_action :authenticate, only: %i[ update ]
+  before_action :authenticate, only: %i[ update me ]
 
   def index
     @users = User.all
@@ -59,6 +59,16 @@ class UsersController < ApplicationController
     else
       render json: @user.errors, status: :unprocessable_entity
     end
+  end
+
+  def me
+    response = {
+      name: @user.name,
+      email: @user.email,
+      created_at: @user.created_at,
+      updated_at: @user.updated_at
+    }
+    render json: response, status: :ok
   end
 
   private
