@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   resources :users, only: %i[ index show create update ] do
     collection do
       get :me
+      patch :me, action: :update
     end
   end
   resource :auth, controller: :auth, only: %i[ create destroy ]

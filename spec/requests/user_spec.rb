@@ -150,4 +150,44 @@ RSpec.describe "User API", type: :request do
       end
     end
   end
+
+  describe "PATCH /users/me" do
+    let(:token) { "TOKEN" }
+    let!(:user) { create(:user, name: "Old Name", email: "me@example.com", token:) }
+    let(:new_name) { "New Name" }
+
+    context "ユーザが認証されていない場合" do
+      it "401エラーを返す" do
+        patch me_users_path, params: { name: new_name }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "有効なnameを送信した場合" do
+      it "ユーザー名が更新される" do
+        patch me_users_path, params: { name: new_name }, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json["name"]).to eq new_name
+        expect(json["email"]).to eq user.email
+        expect(user.reload.name).to eq new_name
+      end
+    end
+
+    context "無効なnameを送信した場合" do
+      it "エラーが返る" do
+        patch me_users_path, params: { name: "" }, headers: { 'Authorization' => "Bearer #{token}" }
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body)
+        expect(json["name"]).to include("is too short (minimum is 3 characters)")
+      end
+    end
+
+    context "無効なトークンの場合" do
+      it "401エラーを返す" do
+        patch me_users_path, params: { name: new_name }, headers: { 'Authorization' => "Bearer invalid_token" }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end
